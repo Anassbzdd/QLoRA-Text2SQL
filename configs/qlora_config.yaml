@@ -1,0 +1,57 @@
+model:
+  base_model: Qwen/Qwen2.5-Coder-14B-Instruct
+  model_name:
+  trust_remote_code: true
+  torch_dtype: float16
+  device_map: auto
+  use_cache: false
+  gradient_checkpointing: true
+
+tokenizer:
+  name:
+  use_fast: true
+  padding_side: right
+
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_compute_dtype: float16
+  bnb_4bit_use_double_quant: true
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  bias: none
+  task_type: CAUSAL_LM
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+data:
+  train_file: processed/train_assembled.jsonl
+  val_file: processed/val_assembled.jsonl
+  max_seq_length: 4096
+
+training:
+  output_dir: outputs/checkpoints/spider-qwen-coder-14b
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 4
+  num_train_epochs: 3
+  learning_rate: 2.0e-4
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.03
+  optim: paged_adamw_8bit
+  fp16: true
+  bf16: false
+  tf32: false
+  logging_steps: 10
+  eval_strategy: epoch
+  save_strategy: epoch
+  report_to: none
