@@ -146,7 +146,7 @@ def main() -> None:
         count = tokenize_jsonl(input_path, args.output, tokenizer, max_seq_length, args.limit)
         print(f"Tokenized {count} row(s) -> {args.output}")
         return
- 
+
     row = next(iter_jsonl(input_path))
     tokenized = tokenize_and_mask_example(row, tokenizer, max_seq_length)
     supervised_text = verify_label_mask(tokenized, tokenizer)

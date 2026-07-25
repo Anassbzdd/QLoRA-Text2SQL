@@ -1,6 +1,6 @@
 model:
   base_model: Qwen/Qwen2.5-Coder-14B-Instruct
-  model_name:
+  model_name: Sql_model
   trust_remote_code: true
   torch_dtype: float16
   device_map: auto
@@ -8,7 +8,7 @@ model:
   gradient_checkpointing: true
 
 tokenizer:
-  name:
+  name: Qwen/Qwen2.5-Coder-14B-Instruct
   use_fast: true
   padding_side: right
 
