@@ -136,3 +136,47 @@ def build_training_arguments(config: dict[str, Any], output_dir: Path | None = N
 
     kwargs = {key: value for key, value in kwargs.items() if key in signature.parameters}
     return TrainingArguments(**kwargs)
+
+
+def train(
+    config_path: str | Path = CONFIG_PATH,
+    train_file: str | Path | None = None,
+    eval_file: str | Path | None = None,
+    output_dir: str | Path | None = None,
+    resume_from_checkpoint: str | Path | None = None,
+    max_train_samples: int | None = None,
+    max_eval_samples: int | None = None,
+    dry_run: bool = False,
+) -> None:
+    """Run the full QLoRA training loop."""
+    config = load_config(config_path)
+    _validate_train_config(config)
+
+    tokenizer = load_tokenizer(config)
+    max_seq_length = int(config["data"]["max_seq_length"])
+    train_path = _resolve_path(train_file or config["data"]["train_file"])
+    eval_path = _resolve_path(eval_file or config["data"]["val_file"])
+
+    train_dataset = TextToSQLDataset(train_path, tokenizer, max_seq_length, max_train_samples)
+    eval_dataset = TextToSQLDataset(eval_path, tokenizer, max_seq_length, max_eval_samples)
+    supervised_text = verify_label_mask(train_dataset[0], tokenizer)
+
+    print(f"Train examples: {len(train_dataset)}")
+    print(f"Eval examples: {len(eval_dataset)}")
+    print(f"First supervised SQL: {supervised_text}")
+
+    if dry_run:
+        print("Dry run complete. Model was not loaded.")
+        return
+
+    trainer = build_trainer(
+        config=config,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        tokenizer=tokenizer,
+        output_dir=Path(output_dir) if output_dir else None,
+    )
+    trainer.train(resume_from_checkpoint=str(resume_from_checkpoint) if resume_from_checkpoint else None)
+    trainer.save_model()
+    tokenizer.save_pretrained(trainer.args.output_dir)
+    print(f"Training complete. Saved adapter and tokenizer to {trainer.args.output_dir}")
