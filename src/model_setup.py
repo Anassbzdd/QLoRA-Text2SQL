@@ -99,7 +99,7 @@ def load_qlora_model(config: dict[str, Any]) -> Any:
     lora_config = config["lora"]
 
     model = AutoModelForCausalLM.from_pretrained(
-        model_config.get("model_name") or model_config["base_model"],
+        model_config["base_model"],
         quantization_config=BitsAndBytesConfig(
             load_in_4bit=quant_config["load_in_4bit"],
             bnb_4bit_quant_type=quant_config["bnb_4bit_quant_type"],
@@ -138,7 +138,7 @@ def load_test_model(config: dict[str, Any], adapter_path: str | Path) -> Any:
     quant_config = config["quantization"]
 
     base_model = AutoModelForCausalLM.from_pretrained(
-        model_config.get("model_name") or model_config["base_model"],
+        model_config["base_model"],
         quantization_config=BitsAndBytesConfig(
             load_in_4bit=quant_config["load_in_4bit"],
             bnb_4bit_quant_type=quant_config["bnb_4bit_quant_type"],
