@@ -36,7 +36,7 @@ lora:
 data:
   train_file: processed/train_assembled.jsonl
   val_file: processed/val_assembled.jsonl
-  max_seq_length: 4096
+  max_seq_length: 2048
 
 training:
   output_dir: outputs/checkpoints/spider-qwen-coder-14b
