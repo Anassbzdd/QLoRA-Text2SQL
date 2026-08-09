@@ -192,6 +192,10 @@ def build_training_arguments(config: dict[str, Any], output_dir: Path | None = N
         "max_grad_norm",
         "weight_decay",
         "gradient_checkpointing",
+        "gradient_checkpointing_kwargs",
+        "dataloader_num_workers",
+        "dataloader_pin_memory",
+        "group_by_length",
     )
     for key in optional_keys:
         if key in training_config and key in signature.parameters:
