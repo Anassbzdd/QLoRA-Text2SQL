@@ -3,7 +3,12 @@ model:
   model_name: Sql_model
   trust_remote_code: true
   torch_dtype: float16
-  device_map: auto
+  device_map: balanced
+  max_memory:
+    0: 12GiB
+    1: 12GiB
+    cpu: 48GiB
+  offload_folder: outputs/offload
   use_cache: false
   gradient_checkpointing: true
 

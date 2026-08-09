@@ -69,6 +69,32 @@ def _torch_dtype(name: str) -> Any:
     }[name]
 
 
+def _model_load_kwargs(model_config: dict[str, Any]) -> dict[str, Any]:
+    kwargs: dict[str, Any] = {"device_map": model_config["device_map"]}
+
+    if "max_memory" in model_config and model_config["max_memory"] is not None:
+        kwargs["max_memory"] = _normalize_max_memory(model_config["max_memory"])
+
+    offload_folder = model_config.get("offload_folder")
+    if offload_folder:
+        kwargs["offload_folder"] = str(Path(offload_folder))
+
+    return kwargs
+
+
+def _normalize_max_memory(max_memory: dict[Any, Any]) -> dict[Any, str]:
+    if not isinstance(max_memory, dict):
+        raise ValueError("model.max_memory must be a mapping like {0: '12GiB', 1: '12GiB', cpu: '48GiB'}.")
+
+    normalized: dict[Any, str] = {}
+    for key, value in max_memory.items():
+        device_key: Any = int(key) if isinstance(key, str) and key.isdigit() else key
+        if not isinstance(device_key, int) and device_key != "cpu":
+            raise ValueError(f"Invalid max_memory device key: {key!r}. Use GPU ids like 0, 1, or 'cpu'.")
+        normalized[device_key] = str(value)
+    return normalized
+
+
 def load_tokenizer(config: dict[str, Any]) -> Any:
     """Load the tokenizer and ensure decoder-only padding is configured."""
     from transformers import AutoTokenizer
@@ -97,6 +123,7 @@ def load_qlora_model(config: dict[str, Any]) -> Any:
     model_config = config["model"]
     quant_config = config["quantization"]
     lora_config = config["lora"]
+    model_load_kwargs = _model_load_kwargs(model_config)
 
     model = AutoModelForCausalLM.from_pretrained(
         model_config["base_model"],
@@ -107,8 +134,8 @@ def load_qlora_model(config: dict[str, Any]) -> Any:
             bnb_4bit_use_double_quant=quant_config["bnb_4bit_use_double_quant"],
         ),
         torch_dtype=_torch_dtype(model_config["torch_dtype"]),
-        device_map=model_config["device_map"],
         trust_remote_code=model_config["trust_remote_code"],
+        **model_load_kwargs,
     )
     model.config.use_cache = model_config["use_cache"]
 
@@ -136,6 +163,7 @@ def load_test_model(config: dict[str, Any], adapter_path: str | Path) -> Any:
 
     model_config = config["model"]
     quant_config = config["quantization"]
+    model_load_kwargs = _model_load_kwargs(model_config)
 
     base_model = AutoModelForCausalLM.from_pretrained(
         model_config["base_model"],
@@ -146,8 +174,8 @@ def load_test_model(config: dict[str, Any], adapter_path: str | Path) -> Any:
             bnb_4bit_use_double_quant=quant_config["bnb_4bit_use_double_quant"],
         ),
         torch_dtype=_torch_dtype(model_config["torch_dtype"]),
-        device_map=model_config["device_map"],
         trust_remote_code=model_config["trust_remote_code"],
+        **model_load_kwargs,
     )
     model = PeftModel.from_pretrained(base_model, adapter_path)
     model.eval()
