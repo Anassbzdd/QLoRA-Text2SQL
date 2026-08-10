@@ -78,6 +78,7 @@ def write_phase_configs(base_config: dict[str, Any], output_dir: str | Path) -> 
         config["training"]["save_strategy"] = "epoch"
         config["training"]["eval_strategy"] = "epoch"
         config["training"]["save_total_limit"] = 2
+        config["data"]["max_seq_length"] = min(int(config["data"]["max_seq_length"]), 1024)
         config["lora"]["r"] = values["r"]
         config["lora"]["alpha"] = values["alpha"]
         path = output_dir / f"{name}.yaml"
@@ -153,6 +154,7 @@ def write_full_run_config(config_path: str | Path, config_name: str) -> Path:
     base_config = load_config(CONFIG_PATH)
     config["training"]["num_train_epochs"] = base_config["training"]["num_train_epochs"]
     config["training"]["save_total_limit"] = 3
+    config["data"]["max_seq_length"] = base_config["data"]["max_seq_length"]
     path = CONFIG_OUTPUT_DIR / f"{config_name}_full.yaml"
     write_yaml(path, config)
     return path

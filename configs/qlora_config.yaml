@@ -5,10 +5,12 @@ model:
   torch_dtype: float16
   device_map: balanced
   max_memory:
-    0: 12GiB
-    1: 12GiB
-    cpu: 48GiB
+    0: 10GiB
+    1: 10GiB
+    cpu: 64GiB
   offload_folder: outputs/offload
+  offload_buffers: true
+  offload_state_dict: true
   use_cache: false
   gradient_checkpointing: true
 
@@ -41,7 +43,7 @@ lora:
 data:
   train_file: processed/train_assembled.jsonl
   val_file: processed/val_assembled.jsonl
-  max_seq_length: 2048
+  max_seq_length: 1024
 
 training:
   output_dir: outputs/checkpoints/spider-qwen-coder-14b

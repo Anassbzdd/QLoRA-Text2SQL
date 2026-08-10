@@ -79,6 +79,11 @@ def _model_load_kwargs(model_config: dict[str, Any]) -> dict[str, Any]:
     if offload_folder:
         kwargs["offload_folder"] = str(Path(offload_folder))
 
+    if "offload_buffers" in model_config:
+        kwargs["offload_buffers"] = bool(model_config["offload_buffers"])
+    if "offload_state_dict" in model_config:
+        kwargs["offload_state_dict"] = bool(model_config["offload_state_dict"])
+
     return kwargs
 
 
